@@ -1,6 +1,6 @@
 # Surfbots Code Intelligence
 
-Public release distribution for Surfbots Dev Platform: local semantic code intelligence, repository-scoped MCP tools, and persistent Development Memory for AI coding agents. This repository deliberately contains only the inspectable bootstrap entrypoint and release metadata. It is not a mirror of the private platform source.
+Public release distribution for Surfbots Dev Platform: local semantic code intelligence, repository-scoped MCP tools, persistent Development Memory, and Development Supervision (refine_task and review_changes) for AI coding agents. This repository deliberately contains only the inspectable bootstrap entrypoint and release metadata. It is not a mirror of the private platform source.
 
 ## Install
 
@@ -10,7 +10,7 @@ Download the bootstrap, inspect it, then run a specific published release:
 curl -fsSL https://raw.githubusercontent.com/franknaw/surfbots-code-intelligence/main/bootstrap.sh \
 	-o /tmp/surfbots-bootstrap.sh
 less /tmp/surfbots-bootstrap.sh
-bash /tmp/surfbots-bootstrap.sh --version v0.2.0 --profile local-lightweight
+bash /tmp/surfbots-bootstrap.sh --version v0.3.0 --profile local-lightweight
 ```
 
 The bootstrap downloads a pinned GitHub Release archive, verifies its mandatory SHA-256 checksum before extraction, installs into user-owned XDG paths, and starts the packaged local platform. It never clones private source.
@@ -20,6 +20,15 @@ The bootstrap downloads a pinned GitHub Release archive, verifies its mandatory 
 `local-lightweight` is the default profile. It uses Qwen3 embedding at 1024 dimensions, BGE reranking, and Qwen2.5-Coder-1.5B Q4_K_M generation. `local-quality` keeps the same code and session-memory retrieval stack and selects Qwen2.5-Coder-3B Q4_K_M generation.
 
 Switching local profiles changes only generation. Existing `code-index` and `session-memory` vectors remain compatible and do not require rebuilding.
+
+## Development Supervision
+
+Version 0.3.0 adds Development Supervision capabilities that enable AI agents to:
+
+- **refine_task** - Convert development requests into precise implementation specifications, grounded in repository context
+- **review_changes** - Evaluate implementations against specifications and current code
+
+These features use the generation model selected in the active inference profile (local or remote OpenAI-compatible).
 
 ## Releases
 
