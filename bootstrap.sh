@@ -14,7 +14,7 @@ mkdir -p "$DATA_HOME" "$LOG_DIR"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 fail() { printf '[ERROR] %s\nLog: %s\n' "$*" "$LOG_FILE" >&2; exit 1; }
-usage() { printf 'Usage: %s [--version vX.Y.Z] [--profile local-lightweight|local-quality]\n' "$0"; }
+usage() { printf 'Usage: %s [--version vX.Y.Z] [--profile PROFILE]\n' "$0"; }
 
 VERSION=""
 PROFILE="${SURFBOTS_INFERENCE_PROFILE:-}"
@@ -34,11 +34,8 @@ if [[ -z "$VERSION" ]]; then
   VERSION="$(curl -fsSL "$DEFAULT_VERSION_URL")" || fail "Could not download current release version."
 fi
 [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "Invalid requested release version: $VERSION"
-case "${PROFILE:-local-lightweight}" in
-  local-lightweight|local-quality) ;;
-  *) fail "Unsupported inference profile: ${PROFILE}" ;;
-esac
-RELEASE_TAG="${SURFBOTS_RELEASE_TAG:-${VERSION}-local-bootstrap}"
+
+RELEASE_TAG="${SURFBOTS_RELEASE_TAG:-${VERSION}}"
 ARCHIVE="surfbots-dev-platform-${VERSION}.tar.gz"
 CHECKSUM="surfbots-dev-platform-${VERSION}.sha256"
 RELEASE_URL="https://github.com/${PUBLIC_REPOSITORY}/releases/download/${RELEASE_TAG}"
@@ -61,4 +58,8 @@ mkdir -p "$(dirname "$INSTALL_ROOT")"
 cp -a "$EXTRACTED" "$INSTALL_ROOT.new"
 rm -rf "$INSTALL_ROOT"
 mv "$INSTALL_ROOT.new" "$INSTALL_ROOT"
-exec "$INSTALL_ROOT/scripts/install-runtime.sh" --profile "${PROFILE:-local-lightweight}"
+
+if [[ -n "$PROFILE" ]]; then
+  exec "$INSTALL_ROOT/scripts/install-runtime.sh" --profile "$PROFILE"
+fi
+exec "$INSTALL_ROOT/scripts/install-runtime.sh"
