@@ -1,10 +1,8 @@
 # Surfbots Code Intelligence
 
-<<<<<<< HEAD
 **Persistent semantic code intelligence for AI coding agents.**
-=======
+
 Public release distribution for Surfbots Dev Platform: local semantic code intelligence, repository-scoped MCP tools, persistent Development Memory, and Development Supervision (refine_task and review_changes) for AI coding agents. This repository deliberately contains only the inspectable bootstrap entrypoint and release metadata. It is not a mirror of the private platform source.
->>>>>>> ec8d7388fa65d45d9814dd31cd906bbfb23a89fe
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
@@ -55,18 +53,11 @@ Code Intelligence treats each repository as a first-class entity with a unique i
 - Repository isolation ensures queries never leak context
 
 ```bash
-<<<<<<< HEAD
 # Register a repository
 surfbots-dev repo add /path/to/repository
 
 # List registered repositories
 surfbots-dev repo list
-=======
-curl -fsSL https://raw.githubusercontent.com/franknaw/surfbots-code-intelligence/main/bootstrap.sh \
-	-o /tmp/surfbots-bootstrap.sh
-less /tmp/surfbots-bootstrap.sh
-bash /tmp/surfbots-bootstrap.sh --version v0.3.0 --profile local-lightweight
->>>>>>> ec8d7388fa65d45d9814dd31cd906bbfb23a89fe
 ```
 
 ### Managed Working-Tree Snapshot
@@ -80,20 +71,7 @@ The host tooling creates and maintains a controlled repository snapshot:
 
 ### Automatic / Incremental Indexing
 
-<<<<<<< HEAD
 Indexing is automatic and incremental:
-=======
-## Development Supervision
-
-Version 0.3.0 adds Development Supervision capabilities that enable AI agents to:
-
-- **refine_task** - Convert development requests into precise implementation specifications, grounded in repository context
-- **review_changes** - Evaluate implementations against specifications and current code
-
-These features use the generation model selected in the active inference profile (local or remote OpenAI-compatible).
-
-## Releases
->>>>>>> ec8d7388fa65d45d9814dd31cd906bbfb23a89fe
 
 - **File change detection**: Tracks SHA-256 file hashes
 - **Incremental updates**: Only modified files are re-indexed
@@ -344,15 +322,15 @@ Download and run the bootstrap script:
 
 ```bash
 # Download the bootstrap script
-curl -fsSL https://raw.githubusercontent.com/franknaw/surfbots-code-intelligence/main/bootstrap.sh \
+curl -fsSL https://raw.githubusercontent.com/franknaw/surfbots-code-intelligence/main/bootstrap.sh \\
   -o /tmp/surfbots-bootstrap.sh
 
 # Inspect the script before running
 less /tmp/surfbots-bootstrap.sh
 
 # Run with a specific release version and profile
-bash /tmp/surfbots-bootstrap.sh \
-  --version v0.2.0 \
+bash /tmp/surfbots-bootstrap.sh \\
+  --version v0.2.0 \\
   --profile local-lightweight
 ```
 
@@ -432,8 +410,8 @@ http://localhost:8023
 
 ```bash
 # Using HTTP API
-curl -X POST http://localhost:8020/api/v1/search \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:8020/api/v1/search \\
+  -H "Content-Type: application/json" \\
   -d '{
     "query": "find login function",
     "repository_id": "your-repository-name",
@@ -441,8 +419,8 @@ curl -X POST http://localhost:8020/api/v1/search \
   }'
 
 # Using MCP
-curl -X POST http://localhost:8023/mcp \
-  -H "Content-Type: application/json" \
+curl -X POST http://localhost:8023/mcp \\
+  -H "Content-Type: application/json" \\
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
@@ -511,7 +489,9 @@ curl "http://localhost:8020/api/v1/files/range?repository_id=your-repository-nam
 
 ## Release Information
 
-**Version**: v0.2.0  **Release Type**: Initial public release  **Status**: Local development, not externally published
+**Version**: v0.2.0  \
+**Release Type**: Initial public release  \
+**Status**: Local development, not externally published
 
 ### GitHub Releases
 
@@ -635,7 +615,7 @@ kubectl get pods -n surfbots-dev-platform
 curl "http://localhost:8020/api/v1/files/range?repository_id=my-repo&path=src/main.py&start_line=1&end_line=100"
 
 # Use search with limit parameter
-curl -X POST http://localhost:8020/api/v1/search \
+curl -X POST http://localhost:8020/api/v1/search \\
   -d '{"query":"find login","limit":5}'
 ```
 
@@ -730,4 +710,5 @@ Apache 2.0 - See LICENSE file for details.
 
 ---
 
-**Version**: v0.2.0  **Repository**: [franknaw/surfbots-code-intelligence](https://github.com/franknaw/surfbots-code-intelligence)
+**Version**: v0.2.0  \
+**Repository**: [franknaw/surfbots-code-intelligence](https://github.com/franknaw/surfbots-code-intelligence)

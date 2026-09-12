@@ -1,0 +1,7 @@
+{
+  "product": "surfbots-dev-platform",
+  "version": "0.4.0",
+  "release": "v0.4.0-local-bootstrap",
+  "schemaVersion": 1,
+  "runtimePaths": ["cluster.sh", "surfbots-admin.sh", "helm", "src", "tooling/repo-bootstrap", "scripts/install-runtime.sh", "bootstrap.sh"]
+}
