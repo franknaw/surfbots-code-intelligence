@@ -1,0 +1,23 @@
+# Release artifacts - uploaded to GitHub Release only
+surfbots-dev-platform-*.tar.gz
+surfbots-dev-platform-*.sha256
+manifest.json
+images.json
+
+# Local build artifacts
+build/
+dist/
+*.pyc
+__pycache__/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local development state
+*.env
+*.env.*
+.env.*
