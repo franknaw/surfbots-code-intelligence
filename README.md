@@ -6,7 +6,7 @@ Public release distribution for Surfbots Dev Platform: local semantic code intel
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
-[![Version](https://img.shields.io/badge/version-v0.2.0-blue.svg)](https://github.com/franknaw/surfbots-code-intelligence/releases)
+[![Version](https://img.shields.io/badge/version-v0.4.0-blue.svg)](https://github.com/franknaw/surfbots-code-intelligence/releases)
 
 ---
 
@@ -489,7 +489,7 @@ curl "http://localhost:8020/api/v1/files/range?repository_id=your-repository-nam
 
 ## Release Information
 
-**Version**: v0.2.0  \
+**Version**: v0.4.0  \
 **Release Type**: Initial public release  \
 **Status**: Local development, not externally published
 
@@ -710,5 +710,5 @@ Apache 2.0 - See LICENSE file for details.
 
 ---
 
-**Version**: v0.2.0  \
+**Version**: v0.4.0  \
 **Repository**: [franknaw/surfbots-code-intelligence](https://github.com/franknaw/surfbots-code-intelligence)
