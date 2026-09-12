@@ -1,7 +1,11 @@
 {
   "product": "surfbots-dev-platform",
-  "version": "0.4.0",
+  "version": "v0.4.0",
   "release": "v0.4.0-local-bootstrap",
   "schemaVersion": 1,
-  "runtimePaths": ["cluster.sh", "surfbots-admin.sh", "helm", "src", "tooling/repo-bootstrap", "scripts/install-runtime.sh", "bootstrap.sh"]
+  "runtimePaths": ["cluster.sh", "surfbots-admin.sh", "helm", "scripts/install-runtime.sh", "bootstrap.sh"],
+  "source_repository": "surfbots-dev-platform",
+  "images_file": "images.json",
+  "excluded_paths": ["src/", "tests/", "__pycache__/", ".github/", ".clinerules/", "*.env", "app/"],
+  "created": "2026-09-12T09:45:00Z"
 }
