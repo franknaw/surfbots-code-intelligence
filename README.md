@@ -1,714 +1,597 @@
 # Surfbots Code Intelligence
 
-**Persistent semantic code intelligence for AI coding agents.**
+**Persistent code intelligence, development memory, and profile-driven
+AI supervision for AI coding agents.**
 
-Public release distribution for Surfbots Dev Platform: local semantic code intelligence, repository-scoped MCP tools, persistent Development Memory, and Development Supervision (refine_task and review_changes) for AI coding agents. This repository deliberately contains only the inspectable bootstrap entrypoint and release metadata. It is not a mirror of the private platform source.
+Surfbots Code Intelligence gives coding agents a persistent
+engineering-context layer beneath the chat session. It indexes the
+repository you are actively developing, exposes bounded code evidence
+through MCP, preserves useful engineering continuity, and connects to
+the broader Surfbots Dev Platform for supervised development workflows.
+
+The goal is simple: **stop making coding agents rediscover the same
+repository on every task.**
+
+> **Current release:** v0.4.0\
+> **Deployment:** Local-first, self-hosted Kubernetes/k3d\
+> **AI strategy:** Local Code Intelligence with profile-driven
+> generation and supervision
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![Version](https://img.shields.io/badge/version-v0.4.0-blue.svg)](https://github.com/franknaw/surfbots-code-intelligence/releases)
 
----
+------------------------------------------------------------------------
 
 ## Why It Exists
 
-AI coding agents face a fundamental problem: **they forget repositories between sessions.**
+AI coding agents repeatedly spend context rediscovering repositories:
+rereading files, relocating symbols, rebuilding architectural
+understanding, and losing decisions between sessions.
 
-Each time an agent starts, it must:
+Surfbots adds a persistent engineering layer underneath the coding
+agent:
 
-- Reread entire repositories from disk
-- Recompute context from raw file content
-- Rediscover symbol definitions and references
-- Relearn code structure and relationships
+-   **Repository-aware Code Intelligence**
+-   **Tree-sitter parsing and code-aware chunking**
+-   **Qdrant semantic retrieval**
+-   **Repository-scoped search**
+-   **Symbol and reference discovery**
+-   **Bounded file/context retrieval**
+-   **Incremental indexing**
+-   **Development Memory**
+-   **MCP-native integration**
+-   **Development Supervision**
+-   **Profile-driven local or remote generation/supervision**
+-   **Local Kubernetes lifecycle tooling**
 
-This causes:
+  -----------------------------------------------------------------------
+  Problem                             Surfbots approach
+  ----------------------------------- -----------------------------------
+  Context-window pressure             Retrieve focused evidence instead
+                                      of repeatedly reading whole
+                                      repositories
 
-| Problem | Impact |
-|---------|--------|
-| **Context window pressure** | Large repositories exceed LLM context limits |
-| **Weak repository continuity** | No persistent understanding across sessions |
-| **Repeated semantic rediscovery** | Same queries re-learn from scratch |
-| **Inefficient symbol lookup** | No indexed definitions/references |
-| **No bounded retrieval** | Agents retrieve entire files instead of relevant snippets |
+  Repository rediscovery              Maintain a persistent semantic
+                                      index
 
-**Surfbots Code Intelligence** solves this by providing a persistent semantic understanding layer:
+  Weak continuity                     Preserve useful engineering context
+                                      in Development Memory
 
-- **Indexed repositories** stored in Qdrant vector database
-- **Semantic + hybrid search** combines embeddings with lexical search
-- **Symbol discovery** via Tree-sitter parsing
-- **Bounded file context** retrieval
-- **Repository isolation** prevents cross-contamination
-- **MCP-native access** for seamless AI agent integration
+  Broad retrieval                     Use bounded search, symbols,
+                                      references, files, and line ranges
 
----
+  Single-agent blind spots            Add structured supervision around
+                                      substantial work
 
-## Core Capabilities
+  Multiple repositories               Scope code, memory, and workflows
+                                      by repository identity
+  -----------------------------------------------------------------------
 
-### Repository Registration
+------------------------------------------------------------------------
 
-Code Intelligence treats each repository as a first-class entity with a unique identity:
+# Code Intelligence
 
-- Register any local directory or Git repository
-- Repository identity persists across agent sessions
-- Repository isolation ensures queries never leak context
+## Repository Registration and Isolation
 
-```bash
-# Register a repository
+Each repository receives a stable Surfbots identity. Indexing, search,
+memory, and supervision are scoped by repository so multiple projects
+can share the same platform without mixing their context.
+
+``` bash
 surfbots-dev repo add /path/to/repository
-
-# List registered repositories
 surfbots-dev repo list
 ```
 
-### Managed Working-Tree Snapshot
+## Managed Working-Tree Snapshot
 
-The host tooling creates and maintains a controlled repository snapshot:
+The developer working tree remains canonical. Host tooling refreshes a
+controlled snapshot for indexing rather than exposing arbitrary host
+paths to Kubernetes.
 
-- **Canonical source**: Developer's working repository
-- **Managed snapshot**: Isolated copy for indexing
-- **Incremental sync**: Only changed files are re-indexed
-- **Git-aware**: Uses `git ls-files` for accurate file detection
-
-### Automatic / Incremental Indexing
-
-Indexing is automatic and incremental:
-
-- **File change detection**: Tracks SHA-256 file hashes
-- **Incremental updates**: Only modified files are re-indexed
-- **Repository isolation**: Changes in one repository don't affect others
-- **Conflict-safe**: Retry-safe indexing that avoids duplicates
-
-### Tree-Sitter Code Parsing
-
-Code Intelligence parses source code with language-aware Tree-sitter:
-
-- **Language support**: Python, TypeScript, JavaScript, Go, Rust, Java, Shell, YAML, JSON, Markdown
-- **Symbol extraction**: Function definitions, class hierarchies, type signatures
-- **Context chunking**: Intelligent chunking for optimal retrieval
-- **File metadata**: Tracks language, extensions, and structure
-
-### Semantic + Hybrid Search
-
-The retrieval pipeline combines multiple search strategies:
-
-```
-User Query
-    ↓
-Embedding Model (Qwen/Qwen3-Embedding-0.6B, 1024-dim)
-    ↓
-Qdrant Vector Retrieval (cosine distance)
-    ↓
-Repository / Language / File Path Filter
-    ↓
-Bounded Results (configurable limit)
+``` text
+Developer Working Tree
+        ↓
+Host Repository Manager
+        ↓
+Atomic Managed Snapshot
+        ↓
+Surfbots Indexer
 ```
 
-Search results are cached in-process with TTL, and cached entries automatically retire on reindex.
+## Incremental Indexing
 
-### Symbol Discovery
+Surfbots tracks file state and reindexes changed content rather than
+rebuilding the entire repository unnecessarily.
 
-Find where symbols are defined in any repository:
+The pipeline includes repository discovery, snapshot refresh, parsing,
+chunking, embedding, Qdrant upsert, stale-record retirement, and
+repository status updates.
 
-```bash
-# Find all definitions of 'login' in a repository
-curl "http://localhost:8020/api/v1/symbols/search?repository_id=my-repo&query=login&limit=20"
+## Tree-Sitter Parsing
+
+Language-aware parsing provides useful code structures and metadata
+rather than arbitrary text slices. Current indexing supports common
+development formats including Python, JavaScript, TypeScript, Go, Rust,
+Java, Shell, YAML, JSON, and Markdown.
+
+## Semantic Retrieval
+
+``` text
+Developer Question
+       ↓
+Qwen3 Embedding
+       ↓
+Qdrant Code Index
+       ↓
+Repository / Path / Language Filtering
+       ↓
+Reranking / Bounded Retrieval
+       ↓
+Agent-Ready Evidence
 ```
 
-| Feature | Description |
-|---------|-------------|
-| **Multi-language** | Supports Python, TypeScript, JavaScript, Go, Rust, Java, Shell |
-| **Exact matching** | Uses regex patterns per language syntax |
-| **Bounded results** | Configurable limit prevents overwhelming agents |
-| **Repository-scoped** | Never returns results from other repositories |
+### Current vector configuration
 
-### Reference Discovery
+  Setting                Value
+  ---------------------- -----------------------------------
+  Collection             `code-index`
+  Vector dimension       **1024**
+  Distance               Cosine
+  Embedding              Qwen3-Embedding-0.6B
+  Reranking              BGE reranker
+  Repository isolation   `repository_id` payload filtering
 
-Find all usages of a symbol across a repository:
+## Symbols, References, and Bounded Files
 
-```bash
-# Find all usages of 'User' class in a repository
-curl "http://localhost:8020/api/v1/symbols/references?repository_id=my-repo&symbol=User&limit=50"
+Surfbots lets agents narrow investigation before editing:
+
+-   `find_symbol` --- locate definitions
+-   `find_references` --- locate usages
+-   `get_file` --- retrieve a file when necessary
+-   `get_file_range` --- retrieve only the needed line range
+-   `search_code` --- retrieve relevant semantic code evidence
+-   `repository_status` --- confirm repository/index state
+
+This is particularly useful for local models with finite context
+windows.
+
+------------------------------------------------------------------------
+
+# Development Memory
+
+Code tells the agent **what exists now**. Development Memory helps
+explain **why it became that way**.
+
+Surfbots can preserve concise engineering continuity such as decisions,
+completed work, validation outcomes, unresolved items, task checkpoints,
+refinement evidence, collaboration evidence, review evidence, and
+workflow state.
+
+Current repository code and tests remain authoritative when they
+conflict with older memory.
+
+## Supervision evidence types
+
+The current supervision implementation uses semantically isolated memory
+types:
+
+-   `supervision_refinement`
+-   `supervision_collaboration`
+-   `supervision_review`
+-   `checkpoint_workflow`
+
+Supersession is same-type only. New evidence links to the canonical
+prior Development Memory `memory_id`, preserving traceable history
+without allowing one evidence type to overwrite another.
+
+------------------------------------------------------------------------
+
+# Development Supervision
+
+Development Supervision adds structured refinement, checkpoints,
+collaboration, review, provenance, and fail-closed completion around
+substantial coding work.
+
+It does **not** replace the primary coding agent.
+
+``` mermaid
+flowchart LR
+    A[refine_task] --> B[Investigation]
+    B --> C[post_investigation]
+    C --> D[Implementation]
+    D --> E[post_implementation]
+    E --> F[Tests]
+    F --> G[post_test]
+    G --> H[pre_review]
+    H --> I[review_changes]
+    I --> J[development_supervision_status]
+    J --> K[complete_development_task]
 ```
 
-### File Context Retrieval
+### Supervision capabilities
 
-Retrieve bounded file content for AI agents:
+-   **Task refinement** --- converts a substantial request into a
+    repository-aware implementation specification.
+-   **Phase checkpoints** --- invoke the configured supervision profile
+    at meaningful development boundaries.
+-   **Collaboration** --- adds another engineering perspective for
+    architecture decisions, blockers, conflicts, and tradeoffs.
+-   **Change review** --- checks completed work against the
+    specification, repository evidence, architecture, and supplied
+    tests.
+-   **Status and provenance** --- reports workflow state, model/provider
+    provenance, and supervision usage.
+-   **Completion integrity** --- verifies persisted refinement,
+    checkpoints, review evidence, and final verdict before permitting
+    completion.
 
-```bash
-# Get full file content
-curl "http://localhost:8020/api/v1/files/content?repository_id=my-repo&path=src/main.py"
+The canonical successful review verdict is:
 
-# Get specific line range
-curl "http://localhost:8020/api/v1/files/range?repository_id=my-repo&path=src/main.py&start_line=1&end_line=50"
+``` text
+no_issues_found
 ```
 
-### Repository Isolation
+------------------------------------------------------------------------
 
-Every query is scoped by `repository_id`:
+# Profile-Driven AI
 
-- **Qdrant filtering**: Repository IDs stored as payload metadata
-- **Cross-contamination prevention**: Queries never leak between repositories
-- **Scalable**: Thousands of repositories supported with same Qdrant collection
+Surfbots is **not tied to one generation or supervision model**.
 
-### Qdrant Vector Index
+Generation and supervision are selected through profiles. A profile can
+use:
 
-Code Intelligence uses Qdrant for vector search:
+-   a lightweight local model
+-   a larger local model
+-   an approved remote provider such as OpenAI
+-   another supported OpenAI-compatible endpoint
 
-| Feature | Detail |
-|---------|--------|
-| **Dimension** | 1024 (matches embedding model output) |
-| **Distance** | Cosine |
-| **Collection** | `code-index` (shared across repositories) |
-| **Payload metadata** | `repository_id`, `file_path`, `language`, `chunk_index` |
-| **Embedding model** | Qwen/Qwen3-Embedding-0.6B (1024-dim) |
+This keeps the repository-intelligence layer independent from the
+generation-provider decision.
 
----
+## Practical local footprint
 
-## MCP Integration
+The baseline local burden is primarily:
 
-Code Intelligence exposes 7 MCP tools for seamless AI agent integration:
+-   Kubernetes/k3d services
+-   Qdrant
+-   repository indexing
+-   Qwen3 embeddings
+-   BGE reranking
+-   Development Memory
+-   MCP services
 
-| Tool | Purpose |
-|------|---------|
-| `search_code` | Search for code snippets across repositories |
-| `get_file` | Retrieve file content by path |
-| `get_file_range` | Get specific line range from file |
-| `find_symbol` | Find where a symbol is defined |
-| `find_references` | Find all usages of a symbol |
-| `repository_status` | Get repository indexing status |
-| `get_file` | Get file content by path |
+A large local generation/supervision LLM is not required when the active
+profile uses a remote provider.
 
-All tools are namespaced by `repository_id` and respect isolation boundaries.
+  -----------------------------------------------------------------------
+  Resource                             Baseline               Recommended
+  ------------------- ------------------------- -------------------------
+  CPU                     4 modern 64-bit cores                  8+ cores
 
-### Example Usage
+  RAM                                     16 GB                     32 GB
 
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "method": "tools/call",
-  "params": {
-    "name": "search_code",
-    "arguments": {
-      "query": "find login function",
-      "repository": "my-repo",
-      "limit": 5
-    }
-  }
-}
+  SSD free space         \~25 GB starting point            More for large
+                                                      repositories/images
+
+  Discrete GPU                     Not required   Useful for larger local
+                                                             LLM profiles
+  -----------------------------------------------------------------------
+
+If generation/supervision run locally, their model size and context
+settings can require additional RAM or GPU resources.
+
+------------------------------------------------------------------------
+
+# MCP Integration
+
+Surfbots exposes Code Intelligence, Development Memory, and Development
+Supervision through MCP.
+
+Representative current tools include:
+
+  Capability                     Tool
+  ------------------------------ ----------------------------------
+  Semantic code retrieval        `search_code`
+  File retrieval                 `get_file`
+  Bounded file retrieval         `get_file_range`
+  Symbol discovery               `find_symbol`
+  Reference discovery            `find_references`
+  Repository/index state         `repository_status`
+  Recent engineering context     `get_recent_context`
+  Historical repository memory   `search_repository_memory`
+  Persist engineering context    `write_repository_memory`
+  Task refinement                `refine_task`
+  Active collaboration           `collaborate_task`
+  Phase supervision              `development_task_checkpoint`
+  Change review                  `review_changes`
+  Supervision status/usage       `development_supervision_status`
+  Fail-closed completion         `complete_development_task`
+
+> The installed platform's MCP `tools/list` response is the runtime
+> source of truth for tool availability.
+
+------------------------------------------------------------------------
+
+# Architecture
+
+``` mermaid
+flowchart LR
+    Repo[Developer Repository] --> RM[Repository Manager]
+    RM --> Snapshot[Managed Snapshot]
+    Snapshot --> Indexer[Code Indexer]
+    Indexer --> Embed[Embedding Service]
+    Embed --> Qdrant[(Qdrant)]
+    Qdrant --> Search[Code Search API]
+    Search --> Rerank[Reranker]
+    Rerank --> MCP[MCP Server]
+    MCP --> Agent[Cline / MCP Coding Agent]
+    Memory[(Development Memory)] <--> Search
+    Profile[Generation / Supervision Profile] --> Search
 ```
 
----
+The broader Surfbots Dev Platform includes seven core workloads: Code
+Indexer, Code Search API, MCP Server, Embedding Model Service,
+Generation Model Service, Reranker Model Service, and Qdrant.
 
-## Relationship to Surfbots Dev Platform
+------------------------------------------------------------------------
 
-**Surfbots Code Intelligence** is the repository understanding and retrieval layer of the broader **Surfbots Dev Platform**:
+# Relationship to Surfbots Dev Platform
 
-| Component | Responsibility |
-|-----------|----------------|
-| **Code Intelligence** | Persistent semantic repository understanding, code search, symbol/reference discovery, bounded file retrieval |
-| **Development Memory** | Durable engineering context across tasks (separate repository) |
-| **Development Supervision** | Independent review and checkpoint workflow (separate repository) |
-| **Model Services** | Local AI models for embedding, generation, and reranking |
-| **Kubernetes/k3d Runtime** | Production-grade infrastructure |
+**Surfbots Code Intelligence** is the repository-awareness foundation.
 
-Code Intelligence is **public and open-source**. Development Memory and Development Supervision are separate components with their own repositories.
+**Surfbots Dev Platform** builds on it with Development Memory,
+Development Supervision, model/provider profiles, MCP integration,
+persistent local services, and lifecycle management.
 
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                      Developer Repository                            │
-│  (git checkout, working directory)                                 │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                   Surfbots Repository Manager                        │
-│  - Canonical source: Developer's working tree                       │
-│  - Managed snapshot: /workspace/repos/<repo_id>                     │
-│  - Incremental sync: Only changed files                             │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                          Code Indexer                                │
-│  - Tree-sitter parsing (Python, TypeScript, etc.)                  │
-│  - Incremental indexing (SHA-256 change detection)                 │
-│  - Chunk generation (500 chars, 50 overlap)                        │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ├─────────────────────────────────────────┐
-                              ▼                                         ▼
-┌───────────────────────────────────────┐      ┌──────────────────────────────────┐
-│        Embedding Service              │      │        Reranker Service          │
-│  - Qwen/Qwen3-Embedding-0.6B         │      │  - BAAI/bge-reranker-v2-m3       │
-│  - Output: 1024 dimensions           │      │  - Relevance scoring             │
-└───────────────────────────────────────┘      └──────────────────────────────────┘
-                              │                                         │
-                              └─────────────────┬───────────────────────┘
-                                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                            Qdrant                                    │
-│  - Collection: code-index                                            │
-│  - Dimension: 1024                                                   │
-│  - Payload metadata: repository_id, file_path, language            │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                       Code Search API                                │
-│  - HTTP API: /api/v1/*                                              │
-│  - Hybrid retrieval: embedding + filter + bounded results          │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                          MCP Server                                  │
-│  - Port 8023                                                         │
-│  - 7 Code Intelligence tools                                        │
-└─────────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                  Cline / AI Coding Agent                             │
-│  - MCP integration                                                   │
-│  - Persistent context across sessions                               │
-└─────────────────────────────────────────────────────────────────────┘
+``` text
+Surfbots Dev Platform
+├── Code Intelligence
+│   ├── repository indexing
+│   ├── semantic retrieval
+│   ├── symbol/reference discovery
+│   └── bounded file context
+├── Development Memory
+├── Development Supervision
+├── MCP Server
+├── Embedding / Reranking
+├── Generation / Supervision Profiles
+├── Qdrant
+└── Kubernetes Lifecycle Tooling
 ```
 
----
+This repository serves as the public/distribution entry point for the
+packaged platform; it is not intended to mirror every development-source
+file.
 
-## Local-First / Privacy
+------------------------------------------------------------------------
 
-Code Intelligence is designed for local, private operation:
+# Local-First and Private Operation
 
-- **Source repository remains under developer control** - No upload required
-- **Indexing can run locally** - No external services required
-- **Embeddings can remain local** - Qwen/Qwen3-Embedding-0.6B runs on CPU
-- **Qdrant vector search is local** - No cloud dependency
-- **Kubernetes services operate locally** - k3d cluster on localhost
+The Code Intelligence path can remain local:
 
-Local profiles (`local-lightweight`, `local-quality`) use GGUF models that run on CPU without GPU.
+-   repository source stays under developer control
+-   managed snapshots remain local
+-   embeddings and reranking can run locally
+-   Qdrant runs locally
+-   Development Memory can remain local
+-   MCP runs locally
 
----
+Generation and supervision can also remain local, or they can use an
+approved remote provider while repository indexing and retrieval stay on
+the developer's infrastructure.
 
-## Installation
+------------------------------------------------------------------------
 
-### Prerequisites
+# Installation
 
-- **Linux** (x86_64, ARM64)
-- **Docker** daemon with non-root access
-- **kubectl** v1.26+
-- **k3d** v5.0+
-- **Helm** v3.10+
-- **Git** v2.30+
-- **rsync** v3.2+
-- **curl** v7.68+
-- **Python** 3.11+
+## Prerequisites
 
-### Minimum Hardware
+Current local deployment targets Linux and expects:
 
-- **CPU**: 4 modern 64-bit cores minimum, 8+ recommended
-- **RAM**: 16 GB minimum, 32 GB recommended
-- **Disk**: 20 GB free space minimum
-- **GPU**: Not required for local-lightweight profile
+-   Docker
+-   kubectl
+-   k3d
+-   Helm
+-   Git
+-   rsync
+-   curl
+-   Python 3
 
-### Install Script
+## Bootstrap
 
-Download and run the bootstrap script:
+Download and inspect the bootstrap before running it:
 
-```bash
-# Download the bootstrap script
-curl -fsSL https://raw.githubusercontent.com/franknaw/surfbots-code-intelligence/main/bootstrap.sh \\
+``` bash
+curl -fsSL \
+  https://raw.githubusercontent.com/franknaw/surfbots-code-intelligence/main/bootstrap.sh \
   -o /tmp/surfbots-bootstrap.sh
 
-# Inspect the script before running
 less /tmp/surfbots-bootstrap.sh
-
-# Run with a specific release version and profile
-bash /tmp/surfbots-bootstrap.sh \\
-  --version v0.2.0 \\
-  --profile local-lightweight
+bash /tmp/surfbots-bootstrap.sh
 ```
 
-The bootstrap script:
+Use the release/version/profile options published by the actual packaged
+release rather than copying arguments from an older README.
 
-1. Downloads the release archive from GitHub
-2. Verifies SHA-256 checksum
-3. Extracts to XDG data directory
-4. Installs runtime components
-5. Starts Kubernetes cluster (k3d)
-6. Deploys all services
+------------------------------------------------------------------------
 
-### Post-Installation
+# Typical Workflow
 
-Verify installation:
-
-```bash
-# Check platform status
+``` bash
+# Start and verify
+surfbots-admin start
 surfbots-admin status
 
-# Check service URLs
-surfbots-admin urls
+# Register the repository
+cd /path/to/your/repository
+surfbots-dev repo add .
 
-# Verify Qdrant is running
-curl http://localhost:6333
-```
-
----
-
-## Usage
-
-### End-to-End Workflow
-
-1. **Install Platform** (see Installation)
-
-2. **Start Platform**
-
-```bash
-# Verify services are running
-surfbots-admin status
-
-# Port-forward services (in separate terminals)
-./surfbots-admin.sh qdrant
-./surfbots-admin.sh mcp
-./surfbots-admin.sh api
-```
-
-3. **Register Repository**
-
-```bash
-# Register a local repository
-surfbots-dev repo add /path/to/your/repository
-
-# List registered repositories
-surfbots-dev repo list
-```
-
-4. **Index Repository**
-
-```bash
-# Trigger indexing
-surfbots-dev repo index your-repository-name
-
-# Check indexing status
+# Verify repository/index state
 surfbots-dev status
 ```
 
-5. **Connect MCP Client**
+Then connect an MCP-capable coding agent to the installed Surfbots MCP
+endpoint and use Code Intelligence, Development Memory, and Development
+Supervision as needed.
 
-Configure your MCP-capable agent (Cline, Claude Dev, etc.) to connect to:
+For substantial tasks:
 
-```
-http://localhost:8023
-```
-
-6. **Search Code**
-
-```bash
-# Using HTTP API
-curl -X POST http://localhost:8020/api/v1/search \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "query": "find login function",
-    "repository_id": "your-repository-name",
-    "limit": 5
-  }'
-
-# Using MCP
-curl -X POST http://localhost:8023/mcp \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "jsonrpc": "2.0",
-    "id": 1,
-    "method": "tools/call",
-    "params": {
-      "name": "search_code",
-      "arguments": {
-        "query": "find login function",
-        "repository": "your-repository-name",
-        "limit": 5
-      }
-    }
-  }'
+``` text
+refine_task
+→ post_investigation
+→ implementation
+→ post_implementation
+→ tests
+→ post_test
+→ pre_review
+→ review_changes
+→ development_supervision_status
+→ complete_development_task
 ```
 
-7. **Inspect Symbols**
+------------------------------------------------------------------------
 
-```bash
-# Find symbol definitions
-curl "http://localhost:8020/api/v1/symbols/search?repository_id=your-repository-name&query=login&limit=20"
+# Lifecycle and Persistence
 
-# Find symbol references
-curl "http://localhost:8020/api/v1/symbols/references?repository_id=your-repository-name&symbol=User&limit=50"
+The packaged platform provides supported lifecycle tooling:
+
+``` bash
+surfbots-admin start
+surfbots-admin stop
+surfbots-admin status
 ```
 
-8. **Retrieve Bounded Context**
+The platform is designed so intended persistent state can survive
+supported stop/start operations, including Qdrant indexes, repository
+metadata, Development Memory, supervision evidence, and workflow state.
 
-```bash
-# Get full file
-curl "http://localhost:8020/api/v1/files/content?repository_id=your-repository-name&path=src/main.py"
+The development lifecycle also supports immutable image builds, service
+redeployment, recorded-image reuse, missing-image self-healing, and
+managed systemd port forwards.
 
-# Get line range
-curl "http://localhost:8020/api/v1/files/range?repository_id=your-repository-name&path=src/main.py&start_line=1&end_line=50"
+------------------------------------------------------------------------
+
+# Configuration
+
+  Role                      Current baseline
+  ------------------------- ----------------------
+  Embedding                 Qwen3-Embedding-0.6B
+  Vector dimension          **1024**
+  Reranking                 BGE reranker
+  Generation                Profile-selected
+  Development Supervision   Profile-selected
+
+Changing the generation/supervision profile does not require replacing
+the Code Intelligence index.
+
+------------------------------------------------------------------------
+
+# Troubleshooting
+
+## MCP unavailable
+
+``` bash
+surfbots-admin status
 ```
 
----
+Verify the MCP workload and managed port-forward. Avoid starting
+duplicate manual `kubectl port-forward` processes when the managed
+systemd forward is active.
 
-## Configuration
+## Code Search API unavailable
 
-### Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SURFBOTS_INFERENCE_PROFILE` | `local-lightweight` | Model profile (local-lightweight, local-quality) |
-| `XDG_DATA_HOME` | `$HOME/.local/share` | Data directory |
-| `XDG_STATE_HOME` | `$HOME/.local/state` | State directory |
-
-### Qdrant Configuration
-
-| Setting | Value |
-|---------|-------|
-| Port | 6333 (port-forwarded) |
-| Collection | `code-index` |
-| Dimension | 1024 |
-| Distance | Cosine |
-
-### Model Configuration
-
-| Service | Model | Dimension |
-|---------|-------|-----------|
-| Embedding | `Qwen/Qwen3-Embedding-0.6B` | 1024 |
-| Reranking | `BAAI/bge-reranker-v2-m3` | - |
-| Generation | `Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF` (Q4_K_M) | - |
-
----
-
-## Release Information
-
-**Version**: v0.4.0  \
-**Release Type**: Initial public release  \
-**Status**: Local development, not externally published
-
-### GitHub Releases
-
-Each release contains:
-
-- `surfbots-dev-platform-vX.Y.Z.tar.gz` - Runtime archive
-- `surfbots-dev-platform-vX.Y.Z.sha256` - Checksum file
-- `manifest.json` - Build metadata
-
-### Release Components
-
-- `scripts/install-runtime.sh` - Runtime installation
-- `charts/` - Helm charts
-- `models/` - Model definitions
-- `mcp-server/` - MCP server
-- `code-indexer/` - Code indexer
-- `code-search-api/` - Code search API
-- `model-embedding/` - Embedding service
-- `model-reranker/` - Reranker service
-- `qdrant/` - Qdrant configuration
-
----
-
-## Troubleshooting
-
-### Repository Not Indexed
-
-**Symptom**: `No managed snapshot for <repo_id>`
-
-**Diagnosis**:
-
-```bash
-# Check registered repositories
-surfbots-dev repo list
-
-# Check indexer status
-kubectl logs -n surfbots-dev-platform -l app=code-indexer
-```
-
-**Fix**: Re-register repository
-
-```bash
-surfbots-dev repo add /path/to/repository
-surfbots-dev repo index repository-name
-```
-
-### Stale Index
-
-**Symptom**: Search returns outdated results
-
-**Fix**: Reindex repository
-
-```bash
-surfbots-dev repo reindex repository-name
-```
-
-### MCP Unavailable
-
-**Symptom**: `Connection refused` on port 8023
-
-**Diagnosis**:
-
-```bash
-# Check MCP server status
-kubectl logs -n surfbots-dev-platform -l app=mcp-server
-
-# Verify port-forward
-curl http://localhost:8023
-```
-
-### Code Search API Unavailable
-
-**Symptom**: HTTP 503 on `/api/v1/*` endpoints
-
-**Diagnosis**:
-
-```bash
-# Check code-search-api status
-kubectl logs -n surfbots-dev-platform -l app=code-search-api
-
-# Verify port-forward
-curl http://localhost:8020
-```
-
-### Qdrant Unavailable
-
-**Symptom**: Vector search returns errors
-
-**Diagnosis**:
-
-```bash
-# Check Qdrant status
-kubectl get pods -n surfbots-dev-platform | grep qdrant
-
-# Verify port-forward
-curl http://localhost:6333
-```
-
-### Local Port-Forward Issue
-
-**Diagnosis**:
-
-```bash
-# Check port-forward status
+``` bash
 kubectl get pods -n surfbots-dev-platform
-
-# Restart port-forwards
-./surfbots-admin.sh qdrant
-./surfbots-admin.sh mcp
-./surfbots-admin.sh api
+kubectl logs -n surfbots-dev-platform -l app=code-search-api
 ```
 
-### Context-Window Pressure
+## Qdrant unavailable
 
-**Symptom**: Agent receives truncated responses
-
-**Fix**: Use bounded retrieval
-
-```bash
-# Retrieve specific line ranges instead of full files
-curl "http://localhost:8020/api/v1/files/range?repository_id=my-repo&path=src/main.py&start_line=1&end_line=100"
-
-# Use search with limit parameter
-curl -X POST http://localhost:8020/api/v1/search \\
-  -d '{"query":"find login","limit":5}'
+``` bash
+kubectl get pods -n surfbots-dev-platform | grep qdrant
 ```
 
-### Agent Repeatedly Reading Entire Files
+## Stale results
 
-**Symptom**: High context usage, slow responses
+Verify repository status and refresh/reindex the managed snapshot using
+the supported CLI workflow.
 
-**Fix**: Ensure agent uses bounded retrieval tools:
+## Context-window pressure
 
-- `get_file_range` instead of `get_file`
-- `search_code` with `limit` parameter
-- `find_symbol` for symbol definitions
-- `find_references` for symbol usages
+Prefer bounded retrieval:
 
----
+-   `search_code`
+-   `find_symbol`
+-   `find_references`
+-   `get_file_range`
 
-## Development / Architecture Notes
+Avoid repeatedly loading the same skill, logs, or whole files. Compact
+long agent sessions before they approach the model's hard context limit.
 
-### Indexing Pipeline
+## Supervision completion rejected
 
-1. **Repository Registration** → Unique `repository_id` generated
-2. **Snapshot Creation** → `git ls-files` → file list
-3. **File Parsing** → Tree-sitter → AST + metadata
-4. **Chunk Generation** → 500 chars, 50 overlap
-5. **Embedding** → Qwen/Qwen3-Embedding-0.6B → 1024-dim vector
-6. **Qdrant Upsert** → `code-index` collection with payload metadata
+Use `development_supervision_status` to identify missing refinement,
+checkpoints, review evidence, or final verdict instead of manually
+altering completion flags.
 
-### Repository Isolation
+------------------------------------------------------------------------
 
-- **Qdrant filter**: `repository_id` in payload
-- **No per-repo collections**: Single `code-index` collection
-- **Cross-contamination prevention**: Query filter always includes `repository_id`
+# Release Information
 
-### Incremental Indexing
+**Current documented release: v0.4.0**
 
-- **File hash**: SHA-256 of file content
-- **Change detection**: Compare hash with stored value
-- **Only changed files**: Re-index only modified files
-- **Conflict-safe**: Idempotent upserts prevent duplicates
+This README replaces stale v0.2.0/v0.3.0 content and removes unresolved
+Git merge-conflict markers.
 
-### Search Pipeline
+Before publishing a GitHub Release, keep these values synchronized:
 
-1. **Query embedding** → Qwen/Qwen3-Embedding-0.6B
-2. **Vector retrieval** → Qdrant with repository filter
-3. **File path filter** → Client-side substring match
-4. **Bounded results** → Configurable limit
-5. **Response formatting** → Agent-ready JSON
+-   `VERSION`
+-   README version badge
+-   Git tag
+-   release manifest
+-   bootstrap default version
+-   packaged artifact version
 
----
+If the distribution repository's `VERSION` file has not yet been
+updated, set it to:
 
-## Status and Scope
+``` text
+0.4.0
+```
 
-### What Code Intelligence Does Today
+before tagging/publishing v0.4.0.
 
-✅ **Repository indexing** with Tree-sitter parsing
-✅ **Semantic search** with Qdrant vector database
-✅ **Symbol discovery** via language-aware parsing
-✅ **Reference discovery** via regex scanning
-✅ **Bounded file retrieval** for agents
-✅ **Repository isolation** with payload filtering
-✅ **Incremental updates** via file hash tracking
-✅ **MCP integration** for AI agents
-✅ **Local model profiles** (Qwen, BGE)
-✅ **Kubernetes runtime** with k3d
+------------------------------------------------------------------------
 
-### What Belongs to the Broader Dev Platform
+# Status
 
-- **Development Memory** - Durable engineering context (separate repository)
-- **Development Supervision** - Independent review workflow (separate repository)
+Current platform capabilities include:
 
-### Known Limitations
+-   repository registration and isolation
+-   managed snapshots
+-   incremental indexing
+-   Tree-sitter code parsing
+-   1024-dimensional semantic retrieval
+-   Qdrant vector storage
+-   reranking
+-   symbols and references
+-   bounded file retrieval
+-   Development Memory
+-   MCP integration
+-   Development Supervision
+-   phase checkpoints
+-   review and completion integrity
+-   model/provider profiles
+-   local Kubernetes lifecycle
+-   persistent engineering context
 
-- No fuzzy symbol matching (exact matching only)
-- No cross-repository search (isolation by design)
-- No binary file indexing (text files only)
-- No real-time sync (manual indexing required)
+------------------------------------------------------------------------
 
----
+## License
 
-## Contributing
+Apache 2.0. See the repository license for details.
 
-This is the initial public release of Surfbots Code Intelligence.
+## Repository
 
-### Support
-
-- GitHub Issues: Report bugs and request features
-- Documentation: See [surfbots-dev-platform](https://github.com/surfbots/surfbots-dev-platform) for platform documentation
-
-### License
-
-Apache 2.0 - See LICENSE file for details.
-
----
-
-**Version**: v0.4.0  \
-**Repository**: [franknaw/surfbots-code-intelligence](https://github.com/franknaw/surfbots-code-intelligence)
+[franknaw/surfbots-code-intelligence](https://github.com/franknaw/surfbots-code-intelligence)
